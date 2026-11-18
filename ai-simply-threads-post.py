@@ -1,20 +1,25 @@
 import os, sys, time, re, json
-import urllib.request, urllib.parse
+import urllib.request, urllib.parse, urllib.error
 
 # 사용법: THREADS_USER_ID=... THREADS_TOKEN=... python ai-simply-threads-post.py threads.txt
 # threads.txt(글 1/N ~ N/N)를 첫 글 + 이어지는 답글(타래) 형태로 게시
 # 토큰은 코드에 적지 말고 환경변수(또는 GitHub Secrets)로만 넣을 것
 
 BASE = "https://graph.threads.net/v1.0"
-UID = os.environ["THREADS_USER_ID"]
-TOKEN = os.environ["THREADS_TOKEN"]
+UID = os.environ["THREADS_USER_ID"].strip()
+TOKEN = os.environ["THREADS_TOKEN"].strip()
 
 def call(path, **params):
     params["access_token"] = TOKEN
     data = urllib.parse.urlencode(params).encode()
     req = urllib.request.Request(f"{BASE}/{path}", data=data, method="POST")
-    with urllib.request.urlopen(req) as r:
-        return json.load(r)
+    try:
+        with urllib.request.urlopen(req) as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", "replace").replace(TOKEN, "***")
+        print("오류:", e.code, path.split("/")[-1], body)
+        sys.exit(1)
 
 def post(text, reply_to=None):
     p = {"media_type": "TEXT", "text": text}
