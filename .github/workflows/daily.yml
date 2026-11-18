@@ -1,19 +1,33 @@
 name: Daily Threads carousel
 
 on:
-  schedule:
-    - cron: "0 23 * * *"   # 한국시간 매일 오전 8시 (UTC 23시, 전날)
+  push:
+    paths:
+      - "posts/**"   # posts/날짜/ 폴더에 카드가 올라오면 바로 쓰레드에 게시
   workflow_dispatch:
+    inputs:
+      date:
+        description: "게시할 날짜 (예: 2026-11-19, 비우면 오늘)"
+        required: false
 
 jobs:
   post:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Post carousel
         env:
           THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
-        run: python ai-simply-threads-carousel.py
+          INPUT_DATE: ${{ github.event.inputs.date }}
+        run: |
+          if [ -n "$INPUT_DATE" ]; then
+            D="$INPUT_DATE"
+          else
+            D=$(git diff --name-only HEAD~1 HEAD -- posts | head -1 | cut -d/ -f2)
+          fi
+          python ai-simply-threads-carousel.py $D
