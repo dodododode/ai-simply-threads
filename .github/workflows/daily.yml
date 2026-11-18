@@ -1,0 +1,19 @@
+name: Daily Threads carousel
+
+on:
+  schedule:
+    - cron: "0 23 * * *"   # 한국시간 매일 오전 8시 (UTC 23시, 전날)
+  workflow_dispatch:
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Post carousel
+        env:
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+        run: python ai-simply-threads-carousel.py
