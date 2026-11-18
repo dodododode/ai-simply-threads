@@ -6,7 +6,7 @@ import urllib.request, urllib.parse, urllib.error
 # 토큰은 코드에 적지 말고 환경변수(또는 GitHub Secrets)로만 넣을 것
 
 BASE = "https://graph.threads.net/v1.0"
-UID = os.environ["THREADS_USER_ID"].strip()
+UID = "me"  # 토큰 주인(내 쓰레드 계정)을 자동으로 사용
 TOKEN = os.environ["THREADS_TOKEN"].strip()
 
 def call(path, **params):
